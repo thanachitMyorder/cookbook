@@ -167,13 +167,23 @@ async def process_files(files: List[Element]):
 async def set_starters():
     return [
         cl.Starter(
-            label="Run Tesla stock analysis",
-            message="Make a data analysis on the tesla-stock-price.csv file I previously uploaded.",
+            label="Run Data analysis",
+            message="Make a data analysis on the next CSV file I will upload.",
             icon="/public/write.svg",
             ),
         cl.Starter(
-            label="Run a data analysis on my CSV",
-            message="Make a data analysis on the next CSV file I will upload.",
+            label="Run a create line chart on my dataset in json format",
+            message="Make a bar chart on my dataset in json format  I will input.",
+            icon="/public/write.svg",
+            ),
+        cl.Starter(
+            label="Run a create line chart on my CSV",
+            message="Make a bar chart on the next CSV file I will upload.",
+            icon="/public/write.svg",
+            ),
+        cl.Starter(
+            label="Run a create line chart on my CSV",
+            message="Make a line chart on the next CSV file I will upload.",
             icon="/public/write.svg",
             )
         ]

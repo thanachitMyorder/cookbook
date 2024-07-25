@@ -4,6 +4,9 @@ from langchain.chat_models import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
 from tools import edit_image_tool, generate_image_tool
 
+import matplotlib.pyplot as plt
+import logging
+
 import chainlit as cl
 from chainlit.action import Action
 from chainlit.input_widget import Select, Switch, Slider
@@ -140,3 +143,47 @@ async def main(message: cl.Message):
         actions = [cl.Action(name="Create variation", value=generated_image_name)]
 
     await cl.Message(content=res, elements=elements, actions=actions).send()
+
+# @cl.on_message
+# async def main(message: cl.Message):
+#     fig, ax = plt.subplots()
+#     ax.plot([1, 2, 3, 4], [1, 4, 2, 3])
+
+#     elements = [
+#         cl.Pyplot(name="plot", figure=fig, display="inline"),
+#     ]
+#     await cl.Message(
+#         content="Here is a simple plot",
+#         elements=elements,
+#     ).send()
+@cl.on_message
+async def main(message: cl.Message):
+    agent = cl.user_session.get("agent")  # type: AgentExecutor
+    cl.user_session.set("generated_graph", None)
+
+    # No async implementation in the Stability AI client, fallback to sync
+    res = await cl.make_async(agent.run)(
+        input=message.content + "assume to format" +  "{\"x_values\": [A1, A2, A3], \"y_values\": [4, 5, 6], \"title\": \"My Graph\", \"xlabel\": \"X\", \"ylabel\": \"Y\"}" , callbacks=[cl.LangchainCallbackHandler()]
+    )
+
+    # Log the received message and results
+    logging.info(f"Received message: {message.content}")
+    logging.info(f"res result from ai: {res}")
+
+    # Create a plot using matplotlib
+    fig, ax = plt.subplots()
+    ax.plot(["BENZ01", "BENZ02", "BENZ03", "BENZ04"], [10, 20, 30, 40])
+    ax.set_title("Simple Plot")
+    ax.set_xlabel("X-axis")
+    ax.set_ylabel("Y-axis")
+
+    # Create elements for the plot
+    elements = [
+        cl.Pyplot(name="simple_plot", figure=fig, display="inline"),
+    ]
+
+    # Send a message with the plot
+    await cl.Message(
+        content="Here is a simple plot",
+        elements=elements,
+    ).send()

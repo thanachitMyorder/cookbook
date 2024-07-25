@@ -1,6 +1,7 @@
 import io
 import os
 
+import matplotlib.pyplot as plt
 import stability_sdk.interfaces.gooseai.generation.generation_pb2 as generation
 from langchain.tools import StructuredTool, Tool
 from PIL import Image
@@ -92,6 +93,37 @@ def edit_image(init_image_name: str, prompt: str):
 
     return f"Here is {image_name} based on {init_image_name}."
 
+def generate_graph(input_data: dict):
+    chart_type = input_data.get('type', 'bar_chart')
+    data = input_data.get('data', {})
+    
+    if not data:
+        raise ValueError("Data for the graph is missing.")
+
+    labels = data.get('labels', [])
+    datasets = data.get('datasets', [])
+
+    plt.figure()
+
+    if chart_type == 'bar_chart':
+        for dataset in datasets:
+            plt.bar(labels, dataset.get('data', []), label=dataset.get('label', ''))
+    else:
+        for dataset in datasets:
+            plt.plot(labels, dataset.get('data', []), label=dataset.get('label', ''))
+
+    plt.title(input_data.get('title', 'Graph'))
+    plt.xlabel(input_data.get('xlabel', 'X-axis'))
+    plt.ylabel(input_data.get('ylabel', 'Y-axis'))
+    plt.legend()
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    image_name = get_image_name()
+    cl.user_session.set(image_name, buf.getvalue())
+    cl.user_session.set("generated_graph", image_name)
+    return f"Here is {image_name}."
 
 generate_image_tool = Tool.from_function(
     func=generate_image,
@@ -104,5 +136,12 @@ edit_image_tool = StructuredTool.from_function(
     func=edit_image,
     name="EditImage",
     description="Useful to edit an image with a prompt. Works well with commands such as 'replace', 'add', 'change', 'remove'.",
+    return_direct=True,
+)
+
+generate_graph_tool = StructuredTool.from_function(
+    func=generate_graph,
+    name="GenerateGraph",
+    description="Useful to generate a graph from given data.",
     return_direct=True,
 )
